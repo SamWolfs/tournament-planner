@@ -1,4 +1,4 @@
-const STORAGE_KEY = 'padel.okami.town/i18n';
+const I18N_STORAGE_KEY = 'padel.okami.town/i18n';
 
 const translations = {
   da: {
@@ -131,7 +131,7 @@ const languages = {
   es: { name: 'Español', flag: '🇪🇸' },
 };
 
-let currentLang = localStorage.getItem(STORAGE_KEY) || 'da';
+let currentLang = localStorage.getItem(I18N_STORAGE_KEY) || 'da';
 
 /**
  * Get translation for a key
@@ -154,7 +154,7 @@ function getCurrentLang() {
 function setLang(lang) {
   if (translations[lang]) {
     currentLang = lang;
-    localStorage.setItem(STORAGE_KEY, lang);
+    localStorage.setItem(I18N_STORAGE_KEY, lang);
     updatePageTranslations();
     document.documentElement.lang = lang;
   }
