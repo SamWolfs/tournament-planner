@@ -44,13 +44,7 @@ function main(
 ) {
   console.log('=== Location Normalization ===\n');
 
-  const canonicalMappings = getCanonicalMappings();
   const filteredLocations = getFilteredLocations();
-
-  console.log('Canonical mappings:');
-  for (const [canonical, aliases] of Object.entries(canonicalMappings)) {
-    console.log(`  ${canonical} ← ${aliases.join(', ')}`);
-  }
 
   console.log('\nFiltered out locations:');
   for (const loc of filteredLocations) {
