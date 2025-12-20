@@ -5,7 +5,6 @@
   "scripts": {
     "fetch": "node src/fetchEvents.js",
     "fetch:enrich": "node src/fetchEvents.js --enrich",
-    "enrich": "node -e \"require('./src/fetchEvents').enrichEvents()\"",
     "normalize": "node src/normalizeClasses.js",
     "aggregate": "node src/aggregateByLocation.js",
     "build:web": "node src/buildWebData.js",
