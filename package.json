@@ -1,0 +1,39 @@
+{
+  "name": "tournament-planner",
+  "version": "1.0.0",
+  "description": "Padel tournament planner - fetches events from RankedIn API",
+  "scripts": {
+    "fetch": "node src/fetchEvents.js",
+    "fetch:enrich": "node src/fetchEvents.js --enrich",
+    "enrich": "node -e \"require('./src/fetchEvents').enrichEvents()\"",
+    "normalize": "node src/normalizeClasses.js",
+    "aggregate": "node src/aggregateByLocation.js",
+    "build:web": "node src/buildWebData.js",
+    "serve": "npx --yes serve web",
+    "locations": "node src/fetchLocations.js",
+    "locations:normalize": "node src/normalizeLocations.js",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "keywords": ["padel", "tournament", "rankedin"],
+  "license": "MIT",
+  "dependencies": {
+    "js-yaml": "^4.1.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.17.0",
+    "eslint": "^9.17.0",
+    "eslint-config-prettier": "^9.1.0",
+    "globals": "^15.14.0",
+    "jest": "^29.7.0",
+    "prettier": "^3.4.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

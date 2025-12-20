@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="da">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tournament Planner</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="background"></div>
+
+    <header class="header">
+      <div class="header__content">
+        <div class="header__top">
+          <div class="header__spacer"></div>
+          <h1 class="logo">
+            <img src="images/logo.png" alt="" class="logo__icon" />
+            <span class="logo__text" data-i18n="logo.text">Tournament Planner</span>
+          </h1>
+          <div id="language-selector" class="lang-selector">
+            <button type="button" class="lang-toggle">
+              <span id="current-lang-flag" class="lang-toggle__flag">🇩🇰</span>
+              <span class="lang-toggle__arrow">▼</span>
+            </button>
+            <div class="lang-dropdown">
+              <!-- Language options populated by JS -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="main">
+      <section class="filters">
+        <div class="filter">
+          <label class="filter__label">
+            <span data-i18n="filter.city">By</span>
+          </label>
+          <select id="hometown" class="input" data-i18n-placeholder="filter.city.placeholder">
+            <option value="" data-i18n="filter.city.placeholder">Vælg din by...</option>
+          </select>
+        </div>
+
+        <div class="filter">
+          <label class="filter__label">
+            <span data-i18n="filter.radius">Søgeradius</span>
+          </label>
+          <div class="slider">
+            <input type="range" id="radius" min="10" max="300" value="50" class="slider__input" />
+            <output id="radius-value" class="slider__output">50 km</output>
+          </div>
+        </div>
+
+        <div class="filter">
+          <label class="filter__label">
+            <span data-i18n="filter.dateRange">Datointerval</span>
+          </label>
+          <div class="input-group">
+            <input type="date" id="start-date" class="input input--date" />
+            <span class="input-group__separator">→</span>
+            <input type="date" id="end-date" class="input input--date" />
+          </div>
+        </div>
+
+        <div class="filter">
+          <label class="filter__label">
+            <span data-i18n="filter.category">Kategori</span>
+            <button
+              type="button"
+              id="clear-categories"
+              class="filter__clear"
+              data-i18n-title="filter.clearAll"
+              title="Ryd alle"
+            >
+              ✕
+            </button>
+          </label>
+          <div id="categories-container" class="chip-grid">
+            <!-- Category checkboxes will be populated here -->
+          </div>
+        </div>
+
+        <div class="filter">
+          <label class="filter__label">
+            <span data-i18n="filter.ranking">Rangering</span>
+            <button
+              type="button"
+              id="clear-rankings"
+              class="filter__clear"
+              data-i18n-title="filter.clearAll"
+              title="Ryd alle"
+            >
+              ✕
+            </button>
+          </label>
+          <div id="rankings-container" class="chip-grid">
+            <!-- Ranking checkboxes will be populated here -->
+          </div>
+        </div>
+
+        <button id="search-btn" class="btn btn--search" disabled>
+          <span class="btn__text" data-i18n="button.search">Søg turneringer</span>
+          <span class="btn__icon">→</span>
+        </button>
+      </section>
+
+      <section class="results">
+        <div class="results__header">
+          <h2 class="results__title" data-i18n="results.title">Turneringer</h2>
+          <span id="results-count" class="results__count" data-i18n="results.selectFilters"
+            >Vælg filtre for at begynde</span
+          >
+        </div>
+
+        <div id="results-list" class="results__list">
+          <div class="empty-state">
+            <div class="empty-state__icon">🔍</div>
+            <p class="empty-state__text" data-i18n="empty.instructions">
+              Vælg din by, radius, datoer, kategori og rangering for at finde turneringer i
+              nærheden.
+            </p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <p>
+        <span data-i18n="footer.dataFrom">Data fra</span>
+        <a href="https://rankedin.com" target="_blank" rel="noopener" class="footer__link"
+          >RankedIn</a
+        >
+      </p>
+    </footer>
+
+    <script src="i18n.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
