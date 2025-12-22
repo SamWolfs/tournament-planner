@@ -161,7 +161,7 @@ async function init() {
     window.i18n.initLanguageSelector();
     window.i18n.updatePageTranslations();
 
-    const config = await loadJson('data/config.json');
+    const config = await loadJson('../data/config.json');
 
     state.locations = config.locations;
     state.categories = config.categories;
@@ -379,7 +379,7 @@ async function searchTournaments() {
     const allEvents = [];
     const fetchPromises = nearbyLocations.map(async (loc) => {
       try {
-        const events = await loadJson(`data/${loc.file}`);
+        const events = await loadJson(`../data/${loc.file}`);
         events.forEach((event) => {
           allEvents.push({
             ...event,
@@ -428,7 +428,7 @@ function renderResults(events, selectedSeries) {
   if (events.length === 0) {
     elements.resultsList.innerHTML = `
       <div class="empty-state">
-        <div class="empty-state__icon">🤷</div>
+        <div class="empty-state__icon"><i class="icon-warning"></i></div>
         <p class="empty-state__text">${window.i18n.t('empty.noMatches')}</p>
       </div>
     `;
@@ -474,15 +474,15 @@ function renderEventCard(event, selectedSeries) {
       </div>
       <div class="event__meta">
         <span class="event__meta-item">
-          <span>📅</span>
+          <span><i class="icon-calendar"></i></span>
           ${dateStr}
         </span>
         <span class="event__meta-item">
-          <span>📍</span>
+          <span><i class="icon-location"></i></span>
           ${event.city}
         </span>
         <span class="event__meta-item">
-          <span>🏢</span>
+          <span><i class="icon-office"></i></span>
           ${event.club}
         </span>
       </div>

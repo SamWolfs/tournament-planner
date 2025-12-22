@@ -255,3 +255,4 @@ window.i18n = {
   updatePageTranslations,
   initLanguageSelector,
 };
+

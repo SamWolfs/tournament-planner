@@ -1,16 +1,109 @@
 <!doctype html>
-<html lang="da">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Tournament Planner</title>
+    <title>Padel Dashboard</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
+    <link rel="stylesheet" href="icomoon.css" />
     <link rel="stylesheet" href="styles.css" />
+    <style>
+      .dashboard {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: calc(100vh - 200px);
+        padding: var(--space-xl);
+      }
+
+      .dashboard__grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: var(--space-xl);
+        max-width: 900px;
+        width: 100%;
+      }
+
+      .card {
+        background: var(--bg-surface);
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--border-subtle);
+        padding: var(--space-xl);
+        text-decoration: none;
+        color: inherit;
+        transition: all 0.2s;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+        opacity: 0;
+        transition: opacity 0.2s;
+      }
+
+      .card:hover {
+        border-color: var(--border-accent);
+        transform: translateY(-4px);
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+      }
+
+      .card:hover::before {
+        opacity: 1;
+      }
+
+      .card__icon {
+        font-size: 3rem;
+        margin-bottom: var(--space-md);
+      }
+
+      .card__title {
+        font-family: var(--font-display);
+        font-size: 1.8rem;
+        letter-spacing: 0.05em;
+        margin-bottom: var(--space-sm);
+        background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .card__description {
+        color: var(--text-secondary);
+        font-size: 0.95rem;
+        line-height: 1.5;
+      }
+
+      .card__arrow {
+        margin-top: var(--space-lg);
+        font-size: 1.5rem;
+        color: var(--accent-primary);
+        opacity: 0;
+        transform: translateX(-8px);
+        transition: all 0.2s;
+      }
+
+      .card:hover .card__arrow {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    </style>
   </head>
   <body>
     <div class="background"></div>
@@ -18,128 +111,26 @@
     <header class="header">
       <div class="header__content">
         <div class="header__top">
-          <div class="header__spacer"></div>
           <h1 class="logo">
             <img src="images/logo.png" alt="" class="logo__icon" />
-            <span class="logo__text" data-i18n="logo.text">Tournament Planner</span>
+            <span class="logo__text">Padel@Okami Town</span>
           </h1>
-          <div id="language-selector" class="lang-selector">
-            <button type="button" class="lang-toggle">
-              <span id="current-lang-flag" class="lang-toggle__flag">🇩🇰</span>
-              <span class="lang-toggle__arrow">▼</span>
-            </button>
-            <div class="lang-dropdown">
-              <!-- Language options populated by JS -->
-            </div>
-          </div>
         </div>
       </div>
     </header>
 
-    <main class="main">
-      <section class="filters">
-        <div class="filter">
-          <label class="filter__label">
-            <span data-i18n="filter.city">By</span>
-          </label>
-          <select id="hometown" class="input" data-i18n-placeholder="filter.city.placeholder">
-            <option value="" data-i18n="filter.city.placeholder">Vælg din by...</option>
-          </select>
-        </div>
-
-        <div class="filter">
-          <label class="filter__label">
-            <span data-i18n="filter.radius">Søgeradius</span>
-          </label>
-          <div class="slider">
-            <input type="range" id="radius" min="10" max="300" value="50" class="slider__input" />
-            <output id="radius-value" class="slider__output">50 km</output>
-          </div>
-        </div>
-
-        <div class="filter">
-          <label class="filter__label">
-            <span data-i18n="filter.dateRange">Datointerval</span>
-          </label>
-          <div class="input-group">
-            <input type="date" id="start-date" class="input input--date" />
-            <span class="input-group__separator">→</span>
-            <input type="date" id="end-date" class="input input--date" />
-          </div>
-        </div>
-
-        <div class="filter">
-          <label class="filter__label">
-            <span data-i18n="filter.category">Kategori</span>
-            <button
-              type="button"
-              id="clear-categories"
-              class="filter__clear"
-              data-i18n-title="filter.clearAll"
-              title="Ryd alle"
-            >
-              ✕
-            </button>
-          </label>
-          <div id="categories-container" class="chip-grid">
-            <!-- Category checkboxes will be populated here -->
-          </div>
-        </div>
-
-        <div class="filter">
-          <label class="filter__label">
-            <span data-i18n="filter.ranking">Rangering</span>
-            <button
-              type="button"
-              id="clear-rankings"
-              class="filter__clear"
-              data-i18n-title="filter.clearAll"
-              title="Ryd alle"
-            >
-              ✕
-            </button>
-          </label>
-          <div id="rankings-container" class="chip-grid">
-            <!-- Ranking checkboxes will be populated here -->
-          </div>
-        </div>
-
-        <button id="search-btn" class="btn btn--search" disabled>
-          <span class="btn__text" data-i18n="button.search">Søg turneringer</span>
-          <span class="btn__icon">→</span>
-        </button>
-      </section>
-
-      <section class="results">
-        <div class="results__header">
-          <h2 class="results__title" data-i18n="results.title">Turneringer</h2>
-          <span id="results-count" class="results__count" data-i18n="results.selectFilters"
-            >Vælg filtre for at begynde</span
-          >
-        </div>
-
-        <div id="results-list" class="results__list">
-          <div class="empty-state">
-            <div class="empty-state__icon">🔍</div>
-            <p class="empty-state__text" data-i18n="empty.instructions">
-              Vælg din by, radius, datoer, kategori og rangering for at finde turneringer i
-              nærheden.
-            </p>
-          </div>
-        </div>
-      </section>
+    <main class="dashboard">
+      <div class="dashboard__grid">
+        <a href="tournament-planner/" class="card">
+          <div class="card__icon"><i class="icon-trophy"></i></div>
+          <h2 class="card__title">Tournament Planner</h2>
+          <p class="card__description">
+            Find padel tournaments near you. Filtered by location, date, category, and ranking level.
+          </p>
+          <span class="card__arrow">→</span>
+        </a>
+      </div>
     </main>
-
-    <footer class="footer">
-      <p>
-        <span data-i18n="footer.dataFrom">Data fra</span>
-        <a href="https://rankedin.com" target="_blank" rel="noopener" class="footer__link"
-          >RankedIn</a
-        >
-      </p>
-    </footer>
-
-    <script src="i18n.js"></script>
-    <script src="app.js"></script>
   </body>
 </html>
+
