@@ -54,7 +54,9 @@ function extractDpfLevels(name) {
     // match[1] could be "50" or "100/60" or "25/35/50" or "100-60"
     const levelNumbers = match[1].split(/[/-]/);
     for (const num of levelNumbers) {
-      levels.push(`DPF${num}`);
+      if (DPF_LEVELS.includes(num)) {
+        levels.push(`DPF${num}`);
+      }
     }
   }
 
