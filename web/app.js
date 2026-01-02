@@ -10,6 +10,7 @@ const state = {
   radius: 50,
   startDate: null,
   endDate: null,
+  ftmOnly: false,
   events: [],
 };
 
@@ -23,6 +24,7 @@ const elements = {
   rankingsContainer: document.getElementById('rankings-container'),
   clearCategories: document.getElementById('clear-categories'),
   clearRankings: document.getElementById('clear-rankings'),
+  ftmOnly: document.getElementById('ftm-only'),
   searchBtn: document.getElementById('search-btn'),
   resultsList: document.getElementById('results-list'),
   resultsCount: document.getElementById('results-count'),
@@ -61,6 +63,7 @@ function saveSettings() {
     endDate: state.endDate ? formatDate(state.endDate) : null,
     categories: Array.from(state.selectedCategories),
     rankings: Array.from(state.selectedRankings),
+    ftmOnly: state.ftmOnly,
   };
 
   try {
@@ -128,6 +131,11 @@ function loadSettings() {
           });
         }
       });
+    }
+
+    if (settings.ftmOnly !== undefined) {
+      state.ftmOnly = settings.ftmOnly;
+      elements.ftmOnly.checked = settings.ftmOnly;
     }
 
     updateSearchButton();
@@ -326,6 +334,10 @@ function setupEventListeners() {
     updateSearchButton();
   });
 
+  elements.ftmOnly.addEventListener('change', (e) => {
+    state.ftmOnly = e.target.checked;
+  });
+
   elements.searchBtn.addEventListener('click', searchTournaments);
 }
 
@@ -406,9 +418,19 @@ async function searchTournaments() {
       if (!event.series || event.series.length === 0) {
         return false;
       }
-      const hasMatchingSeries = event.series.some((s) => selectedSeries.has(s));
-      if (!hasMatchingSeries) {
-        return false;
+
+      // When FTM only filter is active, check if any matching series is FTM
+      if (state.ftmOnly) {
+        const ftmSeries = event.ftmSeries || [];
+        const hasMatchingFtmSeries = ftmSeries.some((s) => selectedSeries.has(s));
+        if (!hasMatchingFtmSeries) {
+          return false;
+        }
+      } else {
+        const hasMatchingSeries = event.series.some((s) => selectedSeries.has(s));
+        if (!hasMatchingSeries) {
+          return false;
+        }
       }
 
       return true;

@@ -17,6 +17,15 @@ const DPF_PATTERN = /\bDPF\s*(\d+(?:[/-]\d+)*)/gi;
 const DASH_LEVELS_PATTERN = /\((\d+(?:-\d+)+)\)/gi;
 const STANDALONE_LEVEL_PATTERN = /\b(10|25|35|50|60|100|200|500|1000|2000)\b/g;
 const WAITING_LIST_PATTERNS = [/venteliste/i, /waiting\s*list/i];
+const FTM_PATTERNS = [/\bftm\b/i, /først\s*til\s*mølle/i, /først-til-mølle/i];
+
+function isFTM(name) {
+  return FTM_PATTERNS.some((pattern) => pattern.test(name));
+}
+
+function extractSignupType(name) {
+  return isFTM(name) ? 'FTM' : 'seeded';
+}
 
 function isWaitingList(name) {
   return WAITING_LIST_PATTERNS.some((pattern) => pattern.test(name));
@@ -162,7 +171,7 @@ function extractStandaloneLevels(name) {
 /**
  * Normalize a class name to a standard format
  * @param {string} name - the original class name
- * @returns {{isWaitingList: boolean, series: Array<{name: string, level: string, gender: string}>}}
+ * @returns {{isWaitingList: boolean, series: Array<{name: string, level: string, gender: string, signupType: string}>}}
  */
 function normalizeClassName(name) {
   const waitingList = isWaitingList(name);
@@ -173,6 +182,7 @@ function normalizeClassName(name) {
 
   let gender = extractGender(name);
   const youthAge = extractYouthAge(name);
+  const signupType = extractSignupType(name);
 
   // Try multiple level extraction methods in order of specificity
   let allLevels = extractDpfLevels(name);
@@ -214,6 +224,7 @@ function normalizeClassName(name) {
           name: `${categoryField} ${level}`,
           ranking: level,
           category: categoryField,
+          signupType,
         });
       }
     } else if (youthAge) {
@@ -222,6 +233,7 @@ function normalizeClassName(name) {
         name: categoryField,
         ranking: null,
         category: categoryField,
+        signupType,
       });
     }
   }
@@ -426,6 +438,7 @@ function collectUniqueSeries(events) {
           name: s.name,
           ranking: s.ranking,
           category: s.category,
+          signupType: s.signupType ?? 'seeded',
           playerCount: s.playerCount ?? null,
         });
       } else {
@@ -536,7 +549,10 @@ module.exports = {
   YOUTH_AGE_PATTERN,
   STANDALONE_LEVEL_PATTERN,
   WAITING_LIST_PATTERNS,
+  FTM_PATTERNS,
   isWaitingList,
+  isFTM,
+  extractSignupType,
   extractGender,
   extractYouthAge,
   extractDpfLevel,

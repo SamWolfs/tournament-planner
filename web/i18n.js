@@ -16,6 +16,9 @@ const translations = {
     'filter.clearAll': 'Ryd alle',
     'filter.km': 'km',
 
+    // FTM filter
+    'filter.ftmOnly': 'Kun først til mølle',
+
     // Search button
     'button.search': 'Søg turneringer',
 
@@ -57,6 +60,9 @@ const translations = {
     'filter.clearAll': 'Clear all',
     'filter.km': 'km',
 
+    // FTM filter
+    'filter.ftmOnly': 'First come, first served only',
+
     // Search button
     'button.search': 'Search Tournaments',
 
@@ -97,6 +103,9 @@ const translations = {
     'filter.ranking': 'Clasificación',
     'filter.clearAll': 'Borrar todo',
     'filter.km': 'km',
+
+    // FTM filter
+    'filter.ftmOnly': 'Solo primero en llegar',
 
     // Search button
     'button.search': 'Buscar torneos',
@@ -255,4 +264,3 @@ window.i18n = {
   updatePageTranslations,
   initLanguageSelector,
 };
-

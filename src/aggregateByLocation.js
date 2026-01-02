@@ -13,6 +13,10 @@ function transformEvent(event) {
     start: event.startDate,
     end: event.endDate,
     series: event.series ? event.series.map((s) => s.name) : [],
+    // Include FTM series names for filtering
+    ftmSeries: event.series
+      ? event.series.filter((s) => s.signupType === 'FTM').map((s) => s.name)
+      : [],
   };
 }
 

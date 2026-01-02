@@ -461,6 +461,69 @@ body {
 }
 
 /* ==========================================================================
+   Toggle Block
+   ========================================================================== */
+
+.toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  cursor: pointer;
+  padding: var(--space-sm) 0;
+}
+
+.toggle__input {
+  display: none;
+}
+
+.toggle__slider {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.toggle__slider::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  background: var(--text-muted);
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+
+.toggle__input:checked + .toggle__slider {
+  background: rgba(0, 229, 160, 0.2);
+  border-color: var(--accent-primary);
+}
+
+.toggle__input:checked + .toggle__slider::after {
+  transform: translateX(20px);
+  background: var(--accent-primary);
+}
+
+.toggle:hover .toggle__slider {
+  border-color: var(--border-accent);
+}
+
+.toggle__label {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  transition: color 0.2s;
+}
+
+.toggle__input:checked ~ .toggle__label {
+  color: var(--accent-primary);
+}
+
+/* ==========================================================================
    Button Block
    ========================================================================== */
 

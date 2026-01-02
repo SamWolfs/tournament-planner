@@ -1,5 +1,7 @@
 const {
   isWaitingList,
+  isFTM,
+  extractSignupType,
   extractGender,
   extractYouthAge,
   extractDpfLevel,
@@ -30,6 +32,52 @@ describe('isWaitingList', () => {
     expect(isWaitingList('Herrer DPF50 (først til mølle)')).toBe(false);
     expect(isWaitingList('Dame DPF25')).toBe(false);
     expect(isWaitingList('Mix DPF35')).toBe(false);
+  });
+});
+
+describe('isFTM', () => {
+  it('should detect Danish "Først til mølle"', () => {
+    expect(isFTM('Herrer DPF50 (først til mølle)')).toBe(true);
+    expect(isFTM('FØRST TIL MØLLE HERRE DPF 25')).toBe(true);
+    expect(isFTM('Dame DPF35 først til mølle')).toBe(true);
+  });
+
+  it('should detect "FTM" abbreviation', () => {
+    expect(isFTM('Herrer DPF50 FTM')).toBe(true);
+    expect(isFTM('Dame DPF25 FTM tilmelding')).toBe(true);
+    expect(isFTM('FTM Herre100')).toBe(true);
+    expect(isFTM('Herre50 FTM')).toBe(true);
+  });
+
+  it('should detect hyphenated "først-til-mølle"', () => {
+    expect(isFTM('DPF 50 Først-til-mølle - Fredag')).toBe(true);
+    expect(isFTM('Mix DPF25 først-til-mølle')).toBe(true);
+  });
+
+  it('should return false for non-FTM entries', () => {
+    expect(isFTM('Herrer DPF50')).toBe(false);
+    expect(isFTM('Dame DPF25 (ranglistestyret)')).toBe(false);
+    expect(isFTM('Mix DPF35')).toBe(false);
+    expect(isFTM('Drenge U14 DPF500')).toBe(false);
+  });
+
+  it('should not match partial words containing FTM', () => {
+    // FTM should be a word boundary match
+    expect(isFTM('Herrer DRAFTMASTER')).toBe(false);
+  });
+});
+
+describe('extractSignupType', () => {
+  it('should return "FTM" for FTM classes', () => {
+    expect(extractSignupType('Herrer DPF50 FTM')).toBe('FTM');
+    expect(extractSignupType('Dame DPF25 (først til mølle)')).toBe('FTM');
+    expect(extractSignupType('DPF 50 Først-til-mølle - Fredag')).toBe('FTM');
+  });
+
+  it('should return "seeded" for non-FTM classes', () => {
+    expect(extractSignupType('Herrer DPF50')).toBe('seeded');
+    expect(extractSignupType('Dame DPF25 (ranglistestyret)')).toBe('seeded');
+    expect(extractSignupType('Mix DPF35')).toBe('seeded');
   });
 });
 
@@ -301,7 +349,9 @@ describe('normalizeClassName', () => {
   it('should normalize complete class names', () => {
     const result = normalizeClassName('Herrer DPF50 (først til mølle)');
     expect(result.isWaitingList).toBe(false);
-    expect(result.series).toEqual([{ name: 'Herrer DPF50', ranking: 'DPF50', category: 'Herrer' }]);
+    expect(result.series).toEqual([
+      { name: 'Herrer DPF50', ranking: 'DPF50', category: 'Herrer', signupType: 'FTM' },
+    ]);
   });
 
   it('should normalize with various formats', () => {
@@ -325,7 +375,7 @@ describe('normalizeClassName', () => {
   it('should default to Herrer when DPF present but no gender', () => {
     // DPF50 without gender should default to Herrer
     expect(normalizeClassName('DPF50').series).toEqual([
-      { name: 'Herrer DPF50', ranking: 'DPF50', category: 'Herrer' },
+      { name: 'Herrer DPF50', ranking: 'DPF50', category: 'Herrer', signupType: 'seeded' },
     ]);
   });
 
@@ -333,7 +383,12 @@ describe('normalizeClassName', () => {
     it('should normalize youth class names with gender field including age', () => {
       const result = normalizeClassName('Drenge U14 DPF500');
       expect(result.series).toEqual([
-        { name: 'Drenge U14 DPF500', ranking: 'DPF500', category: 'Drenge U14' },
+        {
+          name: 'Drenge U14 DPF500',
+          ranking: 'DPF500',
+          category: 'Drenge U14',
+          signupType: 'seeded',
+        },
       ]);
     });
 
@@ -342,16 +397,19 @@ describe('normalizeClassName', () => {
         name: 'Drenge U12 DPF500',
         ranking: 'DPF500',
         category: 'Drenge U12',
+        signupType: 'seeded',
       });
       expect(normalizeClassName('Piger U16 DPF200').series[0]).toEqual({
         name: 'Piger U16 DPF200',
         ranking: 'DPF200',
         category: 'Piger U16',
+        signupType: 'seeded',
       });
       expect(normalizeClassName('U18 piger DPF500').series[0]).toEqual({
         name: 'Piger U18 DPF500',
         ranking: 'DPF500',
         category: 'Piger U18',
+        signupType: 'seeded',
       });
     });
   });
@@ -360,17 +418,17 @@ describe('normalizeClassName', () => {
     it('should create multiple series entries for multiple levels', () => {
       const result = normalizeClassName('Herrer DPF100/60');
       expect(result.series).toEqual([
-        { name: 'Herrer DPF100', ranking: 'DPF100', category: 'Herrer' },
-        { name: 'Herrer DPF60', ranking: 'DPF60', category: 'Herrer' },
+        { name: 'Herrer DPF100', ranking: 'DPF100', category: 'Herrer', signupType: 'seeded' },
+        { name: 'Herrer DPF60', ranking: 'DPF60', category: 'Herrer', signupType: 'seeded' },
       ]);
     });
 
     it('should handle three or more levels', () => {
       const result = normalizeClassName('Damer DPF 25/35/50');
       expect(result.series).toEqual([
-        { name: 'Damer DPF25', ranking: 'DPF25', category: 'Damer' },
-        { name: 'Damer DPF35', ranking: 'DPF35', category: 'Damer' },
-        { name: 'Damer DPF50', ranking: 'DPF50', category: 'Damer' },
+        { name: 'Damer DPF25', ranking: 'DPF25', category: 'Damer', signupType: 'seeded' },
+        { name: 'Damer DPF35', ranking: 'DPF35', category: 'Damer', signupType: 'seeded' },
+        { name: 'Damer DPF50', ranking: 'DPF50', category: 'Damer', signupType: 'seeded' },
       ]);
     });
 
@@ -381,11 +439,13 @@ describe('normalizeClassName', () => {
         name: 'Herrer DPF25',
         ranking: 'DPF25',
         category: 'Herrer',
+        signupType: 'seeded',
       });
       expect(result.series[4]).toEqual({
         name: 'Herrer DPF200',
         ranking: 'DPF200',
         category: 'Herrer',
+        signupType: 'seeded',
       });
     });
   });
@@ -394,13 +454,15 @@ describe('normalizeClassName', () => {
     it('should normalize class names without DPF prefix', () => {
       const result = normalizeClassName('HERRE 100');
       expect(result.series).toEqual([
-        { name: 'Herrer DPF100', ranking: 'DPF100', category: 'Herrer' },
+        { name: 'Herrer DPF100', ranking: 'DPF100', category: 'Herrer', signupType: 'seeded' },
       ]);
     });
 
     it('should normalize DAME without DPF prefix', () => {
       const result = normalizeClassName('DAME 60');
-      expect(result.series).toEqual([{ name: 'Damer DPF60', ranking: 'DPF60', category: 'Damer' }]);
+      expect(result.series).toEqual([
+        { name: 'Damer DPF60', ranking: 'DPF60', category: 'Damer', signupType: 'seeded' },
+      ]);
     });
   });
 
@@ -408,13 +470,15 @@ describe('normalizeClassName', () => {
     it('should normalize Herre50 format', () => {
       const result = normalizeClassName('Herre50 FTM');
       expect(result.series).toEqual([
-        { name: 'Herrer DPF50', ranking: 'DPF50', category: 'Herrer' },
+        { name: 'Herrer DPF50', ranking: 'DPF50', category: 'Herrer', signupType: 'FTM' },
       ]);
     });
 
     it('should normalize Dame35 format', () => {
       const result = normalizeClassName('Dame35 FTM');
-      expect(result.series).toEqual([{ name: 'Damer DPF35', ranking: 'DPF35', category: 'Damer' }]);
+      expect(result.series).toEqual([
+        { name: 'Damer DPF35', ranking: 'DPF35', category: 'Damer', signupType: 'FTM' },
+      ]);
     });
 
     it('should handle various concatenated patterns', () => {
@@ -428,16 +492,16 @@ describe('normalizeClassName', () => {
     it('should normalize dash-separated levels in parentheses', () => {
       const result = normalizeClassName('Tilmelding, herrer (200-100)');
       expect(result.series).toEqual([
-        { name: 'Herrer DPF200', ranking: 'DPF200', category: 'Herrer' },
-        { name: 'Herrer DPF100', ranking: 'DPF100', category: 'Herrer' },
+        { name: 'Herrer DPF200', ranking: 'DPF200', category: 'Herrer', signupType: 'seeded' },
+        { name: 'Herrer DPF100', ranking: 'DPF100', category: 'Herrer', signupType: 'seeded' },
       ]);
     });
 
     it('should normalize dash-separated DPF levels', () => {
       const result = normalizeClassName('Herrer DPF100-60');
       expect(result.series).toEqual([
-        { name: 'Herrer DPF100', ranking: 'DPF100', category: 'Herrer' },
-        { name: 'Herrer DPF60', ranking: 'DPF60', category: 'Herrer' },
+        { name: 'Herrer DPF100', ranking: 'DPF100', category: 'Herrer', signupType: 'seeded' },
+        { name: 'Herrer DPF60', ranking: 'DPF60', category: 'Herrer', signupType: 'seeded' },
       ]);
     });
   });
@@ -446,23 +510,37 @@ describe('normalizeClassName', () => {
     it('should default to Herrer when DPF level present but no gender', () => {
       const result = normalizeClassName('DPF 50 Først-til-mølle - Fredag');
       expect(result.series).toEqual([
-        { name: 'Herrer DPF50', ranking: 'DPF50', category: 'Herrer' },
+        { name: 'Herrer DPF50', ranking: 'DPF50', category: 'Herrer', signupType: 'FTM' },
       ]);
     });
 
     it('should default to Herrer for multiple levels without gender', () => {
       const result = normalizeClassName('DPF 35/25 Først-til-mølle');
       expect(result.series).toEqual([
-        { name: 'Herrer DPF35', ranking: 'DPF35', category: 'Herrer' },
-        { name: 'Herrer DPF25', ranking: 'DPF25', category: 'Herrer' },
+        { name: 'Herrer DPF35', ranking: 'DPF35', category: 'Herrer', signupType: 'FTM' },
+        { name: 'Herrer DPF25', ranking: 'DPF25', category: 'Herrer', signupType: 'FTM' },
       ]);
     });
 
     it('should default to Herrer for concatenated DPF patterns', () => {
       const result = normalizeClassName('DPF25A');
       expect(result.series).toEqual([
-        { name: 'Herrer DPF25', ranking: 'DPF25', category: 'Herrer' },
+        { name: 'Herrer DPF25', ranking: 'DPF25', category: 'Herrer', signupType: 'seeded' },
       ]);
+    });
+  });
+
+  describe('signupType extraction', () => {
+    it('should set signupType to FTM for FTM classes', () => {
+      expect(normalizeClassName('Herrer DPF50 FTM').series[0].signupType).toBe('FTM');
+      expect(normalizeClassName('Dame DPF25 (først til mølle)').series[0].signupType).toBe('FTM');
+    });
+
+    it('should set signupType to seeded for non-FTM classes', () => {
+      expect(normalizeClassName('Herrer DPF50').series[0].signupType).toBe('seeded');
+      expect(normalizeClassName('Dame DPF25 (ranglistestyret)').series[0].signupType).toBe(
+        'seeded'
+      );
     });
   });
 });
@@ -472,7 +550,13 @@ describe('normalizeClass', () => {
     const result = normalizeClass({ id: 123, name: 'Herrer DPF50' });
     expect(result.class).toEqual({ id: 123, name: 'Herrer DPF50' });
     expect(result.series).toEqual([
-      { name: 'Herrer DPF50', ranking: 'DPF50', category: 'Herrer', playerCount: null },
+      {
+        name: 'Herrer DPF50',
+        ranking: 'DPF50',
+        category: 'Herrer',
+        signupType: 'seeded',
+        playerCount: null,
+      },
     ]);
     expect(result.isUnknown).toBe(false);
   });
@@ -494,22 +578,59 @@ describe('normalizeClass', () => {
   it('should include multiple series for multi-level classes', () => {
     const result = normalizeClass({ id: 123, name: 'Herrer DPF100/60' });
     expect(result.series).toEqual([
-      { name: 'Herrer DPF100', ranking: 'DPF100', category: 'Herrer', playerCount: null },
-      { name: 'Herrer DPF60', ranking: 'DPF60', category: 'Herrer', playerCount: null },
+      {
+        name: 'Herrer DPF100',
+        ranking: 'DPF100',
+        category: 'Herrer',
+        signupType: 'seeded',
+        playerCount: null,
+      },
+      {
+        name: 'Herrer DPF60',
+        ranking: 'DPF60',
+        category: 'Herrer',
+        signupType: 'seeded',
+        playerCount: null,
+      },
     ]);
   });
 
   it('should handle youth classes', () => {
     const result = normalizeClass({ id: 123, name: 'Drenge U14 DPF500' });
     expect(result.series).toEqual([
-      { name: 'Drenge U14 DPF500', ranking: 'DPF500', category: 'Drenge U14', playerCount: null },
+      {
+        name: 'Drenge U14 DPF500',
+        ranking: 'DPF500',
+        category: 'Drenge U14',
+        signupType: 'seeded',
+        playerCount: null,
+      },
     ]);
   });
 
   it('should handle standalone level numbers', () => {
     const result = normalizeClass({ id: 123, name: 'HERRE 100' });
     expect(result.series).toEqual([
-      { name: 'Herrer DPF100', ranking: 'DPF100', category: 'Herrer', playerCount: null },
+      {
+        name: 'Herrer DPF100',
+        ranking: 'DPF100',
+        category: 'Herrer',
+        signupType: 'seeded',
+        playerCount: null,
+      },
+    ]);
+  });
+
+  it('should include signupType FTM for FTM classes', () => {
+    const result = normalizeClass({ id: 123, name: 'Herrer DPF50 FTM' });
+    expect(result.series).toEqual([
+      {
+        name: 'Herrer DPF50',
+        ranking: 'DPF50',
+        category: 'Herrer',
+        signupType: 'FTM',
+        playerCount: null,
+      },
     ]);
   });
 });
@@ -538,18 +659,21 @@ describe('normalizeEventClasses', () => {
       name: 'Herrer DPF50',
       ranking: 'DPF50',
       category: 'Herrer',
+      signupType: 'seeded',
       playerCount: null,
     });
     expect(result.series).toContainEqual({
       name: 'Damer DPF25',
       ranking: 'DPF25',
       category: 'Damer',
+      signupType: 'seeded',
       playerCount: null,
     });
     expect(result.series).toContainEqual({
       name: 'Mix DPF35',
       ranking: 'DPF35',
       category: 'Mix',
+      signupType: 'seeded',
       playerCount: null,
     });
     expect(result.unknownSeries).toEqual([]);
@@ -590,6 +714,7 @@ describe('normalizeEventClasses', () => {
       name: 'Herrer DPF50',
       ranking: 'DPF50',
       category: 'Herrer',
+      signupType: 'seeded',
       playerCount: null,
     });
   });
@@ -648,12 +773,14 @@ describe('normalizeEventClasses', () => {
       name: 'Herrer DPF100',
       ranking: 'DPF100',
       category: 'Herrer',
+      signupType: 'seeded',
       playerCount: null,
     });
     expect(result.series).toContainEqual({
       name: 'Herrer DPF60',
       ranking: 'DPF60',
       category: 'Herrer',
+      signupType: 'seeded',
       playerCount: null,
     });
   });
@@ -784,63 +911,63 @@ describe('Multiple DPF levels - series generation', () => {
     {
       input: 'Herrer DPF100/60',
       expectedSeries: [
-        { name: 'Herrer DPF100', ranking: 'DPF100', category: 'Herrer' },
-        { name: 'Herrer DPF60', ranking: 'DPF60', category: 'Herrer' },
+        { name: 'Herrer DPF100', ranking: 'DPF100', category: 'Herrer', signupType: 'seeded' },
+        { name: 'Herrer DPF60', ranking: 'DPF60', category: 'Herrer', signupType: 'seeded' },
       ],
     },
     {
       input: 'Damer DPF 25/35/50',
       expectedSeries: [
-        { name: 'Damer DPF25', ranking: 'DPF25', category: 'Damer' },
-        { name: 'Damer DPF35', ranking: 'DPF35', category: 'Damer' },
-        { name: 'Damer DPF50', ranking: 'DPF50', category: 'Damer' },
+        { name: 'Damer DPF25', ranking: 'DPF25', category: 'Damer', signupType: 'seeded' },
+        { name: 'Damer DPF35', ranking: 'DPF35', category: 'Damer', signupType: 'seeded' },
+        { name: 'Damer DPF50', ranking: 'DPF50', category: 'Damer', signupType: 'seeded' },
       ],
     },
     {
       input: 'Mix DPF35/25 (først til mølle)',
       expectedSeries: [
-        { name: 'Mix DPF35', ranking: 'DPF35', category: 'Mix' },
-        { name: 'Mix DPF25', ranking: 'DPF25', category: 'Mix' },
+        { name: 'Mix DPF35', ranking: 'DPF35', category: 'Mix', signupType: 'FTM' },
+        { name: 'Mix DPF25', ranking: 'DPF25', category: 'Mix', signupType: 'FTM' },
       ],
     },
     {
       input: 'TILMELDING HERRE DPF 100/60',
       expectedSeries: [
-        { name: 'Herrer DPF100', ranking: 'DPF100', category: 'Herrer' },
-        { name: 'Herrer DPF60', ranking: 'DPF60', category: 'Herrer' },
+        { name: 'Herrer DPF100', ranking: 'DPF100', category: 'Herrer', signupType: 'seeded' },
+        { name: 'Herrer DPF60', ranking: 'DPF60', category: 'Herrer', signupType: 'seeded' },
       ],
     },
     {
       input: 'DPF 100/60/35/25 Herrer',
       expectedSeries: [
-        { name: 'Herrer DPF100', ranking: 'DPF100', category: 'Herrer' },
-        { name: 'Herrer DPF60', ranking: 'DPF60', category: 'Herrer' },
-        { name: 'Herrer DPF35', ranking: 'DPF35', category: 'Herrer' },
-        { name: 'Herrer DPF25', ranking: 'DPF25', category: 'Herrer' },
+        { name: 'Herrer DPF100', ranking: 'DPF100', category: 'Herrer', signupType: 'seeded' },
+        { name: 'Herrer DPF60', ranking: 'DPF60', category: 'Herrer', signupType: 'seeded' },
+        { name: 'Herrer DPF35', ranking: 'DPF35', category: 'Herrer', signupType: 'seeded' },
+        { name: 'Herrer DPF25', ranking: 'DPF25', category: 'Herrer', signupType: 'seeded' },
       ],
     },
     // Dash-separated levels in DPF pattern
     {
       input: 'Herrer DPF100-60',
       expectedSeries: [
-        { name: 'Herrer DPF100', ranking: 'DPF100', category: 'Herrer' },
-        { name: 'Herrer DPF60', ranking: 'DPF60', category: 'Herrer' },
+        { name: 'Herrer DPF100', ranking: 'DPF100', category: 'Herrer', signupType: 'seeded' },
+        { name: 'Herrer DPF60', ranking: 'DPF60', category: 'Herrer', signupType: 'seeded' },
       ],
     },
     // Dash-separated levels in parentheses
     {
       input: 'Tilmelding, herrer (200-100)',
       expectedSeries: [
-        { name: 'Herrer DPF200', ranking: 'DPF200', category: 'Herrer' },
-        { name: 'Herrer DPF100', ranking: 'DPF100', category: 'Herrer' },
+        { name: 'Herrer DPF200', ranking: 'DPF200', category: 'Herrer', signupType: 'seeded' },
+        { name: 'Herrer DPF100', ranking: 'DPF100', category: 'Herrer', signupType: 'seeded' },
       ],
     },
     // Default to Herrer when no gender
     {
       input: 'DPF 50/35 Først-til-mølle',
       expectedSeries: [
-        { name: 'Herrer DPF50', ranking: 'DPF50', category: 'Herrer' },
-        { name: 'Herrer DPF35', ranking: 'DPF35', category: 'Herrer' },
+        { name: 'Herrer DPF50', ranking: 'DPF50', category: 'Herrer', signupType: 'FTM' },
+        { name: 'Herrer DPF35', ranking: 'DPF35', category: 'Herrer', signupType: 'FTM' },
       ],
     },
   ];
